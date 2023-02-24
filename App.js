@@ -12,7 +12,9 @@ export default function App() {
   const [input, setInput] = useState("Samarkand");
   const [load, setLoad] = useState(false);
   const [res, setRes] = useState("");
-  const [err, setErr] = useState({status: false, text: ""});
+  //const [err, setErr] = useState({status: false, text: ""});
+  const [errStatus, setErrStatus] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
   const api = {
     key: "96cd9a48d7cd1602836ab80d13c2b540",
     baseUrl: "https://api.openweathermap.org/data/2.5/",
@@ -21,20 +23,28 @@ export default function App() {
   async function submitHandler() {
     if(!input || input.length<2) return;
     try {
+      setRes("")
       let inputReq = input.trim()
-      setErr({status: false, text: ""})
+      setErrStatus(false)
+      setErrMsg("")
       setLoad(true)
-      await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${input}&units=metric&appid=${api.key}`)
+      await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${inputReq}&units=metric&appid=${api.key}`)
       .then((response) => response.json())
       .then(res=>{
         setRes(res)
-        if(res.cod=='404')
-          setErr({status: true, text: res.message})
-        console.log(res)
+        if(res.cod=='404'){
+          setErrStatus(true)
+          setErrMsg("error") 
+        }
+      })
+      .catch(err=>{
+        setErrStatus(true)
+        setErrMsg(err)
       })
     }
-    catch(err) {  
-      setErr({status: true, text: err})
+    catch(err) { 
+      setErrStatus(true)
+      setErrMsg(err) 
     }
     finally {
       setLoad(false);
@@ -63,7 +73,7 @@ export default function App() {
         {load && <View>
             <ActivityIndicator size={'large'} color="#000"></ActivityIndicator>
           </View>}
-          {!err.status && res && <View style={styles.infoVal}>
+          { !setErrStatus && <View style={styles.infoVal}>
               <Text style={styles.countryname}>
                 {`${res?.name}, ${res?.sys?.country}`}
               </Text>
@@ -74,9 +84,9 @@ export default function App() {
               <Text style={styles.extraParam}>{`Pressure: ${res?.main?.pressure}`}</Text>
               <Text style={styles.extraParam}>{`Wind speed: ${res?.wind?.speed}`}</Text>
             </View>}
-          {!res && err.status && <View style={styles.infoVal}>
+          {setErrStatus && <View>
               <Text style={styles.errMsg}>
-                {`Error ${err?.text}`}
+                {`Error ${errMsg}`}
               </Text>
             </View>}
             <Text style={styles.devText}>Devoleped by Qobulov Asror</Text>
