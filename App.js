@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { 
   ImageBackground, 
   StyleSheet, 
@@ -12,7 +12,6 @@ export default function App() {
   const [input, setInput] = useState("Samarkand");
   const [load, setLoad] = useState(false);
   const [res, setRes] = useState("");
-  //const [err, setErr] = useState({status: false, text: ""});
   const [errStatus, setErrStatus] = useState(false);
   const [errMsg, setErrMsg] = useState("");
   const api = {
@@ -21,34 +20,42 @@ export default function App() {
     // baseUrl: "https://api.openweathermap.org/data/2.5/weather?q=Samarqand&units=metric&appid=96cd9a48d7cd1602836ab80d13c2b540",
   }
   async function submitHandler() {
-    if(!input || input.length<2) return;
+    let inputReq = input.trim()
+    if(!inputReq || inputReq.length<3) return;
     try {
+      setLoad(true)
       setRes("")
-      let inputReq = input.trim()
       setErrStatus(false)
       setErrMsg("")
-      setLoad(true)
       await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${inputReq}&units=metric&appid=${api.key}`)
       .then((response) => response.json())
       .then(res=>{
         setRes(res)
         if(res.cod=='404'){
           setErrStatus(true)
-          setErrMsg("error") 
+          setErrMsg(res.message)      
+          console.log(res);
         }
       })
       .catch(err=>{
         setErrStatus(true)
-        setErrMsg(err)
+        setErrMsg(err)  
+        setRes("")
+        console.log(err);
       })
     }
-    catch(err) { 
+    catch(err) {  
       setErrStatus(true)
-      setErrMsg(err) 
+      setErrMsg(err)   
+      console.log("err");
     }
     finally {
       setLoad(false);
       setInput("")
+      if(errStatus){
+        setRes()
+        console.log("err");
+      }
     }
   }
   return (
@@ -73,18 +80,20 @@ export default function App() {
         {load && <View>
             <ActivityIndicator size={'large'} color="#000"></ActivityIndicator>
           </View>}
-          { !setErrStatus && <View style={styles.infoVal}>
+          { !errStatus && res && <View style={styles.infoVal}>
               <Text style={styles.countryname}>
                 {`${res?.name}, ${res?.sys?.country}`}
               </Text>
               <Text style={styles.dateTime}>{new Date().toLocaleString()}</Text>
               <Text style={styles.temp}>{`${Math.round(res?.main?.temp)} °C`}</Text>
               <Text style={styles.tempMaxMin}>{`${Math.round(res?.main?.temp_min)}°C / ${Math.round(res?.main?.temp_max)} °C`}</Text>
-              <Text style={styles.desc}>{`${res?.weather[0]?.description}`} </Text>
+              {
+                res.weather && <Text style={styles.desc}>{`${res?.weather[0]?.description}`} </Text>
+              }
               <Text style={styles.extraParam}>{`Pressure: ${res?.main?.pressure}`}</Text>
               <Text style={styles.extraParam}>{`Wind speed: ${res?.wind?.speed}`}</Text>
             </View>}
-          {setErrStatus && <View>
+          {errStatus && !res && <View style={styles.infoVal}>
               <Text style={styles.errMsg}>
                 {`Error ${errMsg}`}
               </Text>
