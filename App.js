@@ -54,6 +54,8 @@ export default function App() {
       setInput("")
       if(errStatus){
         setRes()
+        if(!errMsg)
+          setErrMsg("Error") 
         console.log("err");
       }
     }
@@ -93,7 +95,7 @@ export default function App() {
               <Text style={styles.extraParam}>{`Pressure: ${res?.main?.pressure}`}</Text>
               <Text style={styles.extraParam}>{`Wind speed: ${res?.wind?.speed}`}</Text>
             </View>}
-          {errStatus && !res && <View style={styles.infoVal}>
+          {errStatus && <View style={styles.infoVal}>
               <Text style={styles.errMsg}>
                 {`Error ${errMsg}`}
               </Text>
